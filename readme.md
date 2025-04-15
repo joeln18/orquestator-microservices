@@ -59,6 +59,13 @@ DB_PASSWORD=tu_password
 DB_PORT=5432
 SONAR_TOKEN=token_sonar_solo_para_ejecutar
 ```
+🧾 Pedido Service
+
+```env
+DB_USER_POSTGRES=tu_usuario_postgres
+DB_PASSWORD_POSTGRES=tu_password_postgres
+```
+
 🔨 Compilación de order-service (Spring Boot)
 
 Antes de levantar los servicios con Docker, asegúrate de tener el .jar listo. Para eso:
@@ -107,6 +114,8 @@ docker-compose down
 	•	Cada microservicio puede tener sus propias variables de entorno.
 	•	order-service requiere generar el .jar con Maven antes de ejecutar docker-compose.
 	•	inventory-service ya gestiona sus variables a través de su propio .env.
+	•	inventory-service requiere de variables de entorno del sistema para postgres
+
 
 
 
