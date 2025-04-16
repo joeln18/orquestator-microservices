@@ -105,6 +105,7 @@ git submodule update --remote
 
 ✅ Verificación
 	•	http://localhost:<puerto> — Verifica los puertos que expone cada microservicio en el docker-compose.yml.
+	•	http://localhost:<puerto>/api/<endpoint> — verifica los endpoint de inventory-service en ./src/server.ts.
 	•	PostgreSQL estará disponible en localhost:<POSTGRES_PORT>.
 
 🧹 Apagar los contenedores
