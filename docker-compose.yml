@@ -15,16 +15,30 @@ services:
     networks:
       - backend
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-microservices
+    ports:
+      - "5672:5672"    # Puerto para aplicaciones (conexión amqp)
+      - "15672:15672"  # Puerto para la consola de administración
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - backend 
+
   order-service:
     build: ./order-service
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/restaurante
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
     ports:
       - "8080:8080"
     depends_on:
       - postgres
+      - rabbitmq
     networks:
       - backend
 
@@ -38,10 +52,12 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_DATABASE}
+      RABBITMQ_HOST: rabbitmq 
     ports:
       - "3000:3000"
     depends_on:
       - postgres
+      - rabbitmq
     networks:
       - backend
 
