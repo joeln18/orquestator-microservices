@@ -33,7 +33,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/restaurante
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_SP_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_SP_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_SP_USER: ${RABBITMQ_USER}
+      RABBITMQ_SP_PASSWORD: ${RABBITMQ_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:
@@ -52,7 +55,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_DATABASE}
-      RABBITMQ_HOST: rabbitmq 
+      RABBITMQ_HOST: ${RABBITMQ_HOST} 
     ports:
       - "3000:3000"
     depends_on:

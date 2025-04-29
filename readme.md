@@ -44,6 +44,10 @@ DB_USER=tu_usuario
 DB_HOST=postgres
 DB_DATABASE=restaurante
 DB_PASSWORD=tu_password
+RABBITMQ_HOST=rabbitmq
+RABBITMQ_PORT=5672
+RABBITMQ_USER=guest
+RABBITMQ_PASSWORD=guest
 ```
 ⚠️ Nota: DB_HOST=postgres hace referencia al nombre del servicio del contenedor definido en docker-compose.yml.
 
@@ -58,12 +62,17 @@ DB_DATABASE=restaurante
 DB_PASSWORD=tu_password
 DB_PORT=5432
 SONAR_TOKEN=token_sonar_solo_para_ejecutar
+RABBITMQ_HOST=rabbitmq
 ```
 🧾 Pedido Service
-
+Agrega las siguientes variables de entorno antes de construir el .jar.
 ```env
 DB_USER_POSTGRES=tu_usuario_postgres
 DB_PASSWORD_POSTGRES=tu_password_postgres
+RABBITMQ_SP_HOST=rabbitmq
+RABBITMQ_SP_PORT=5672
+RABBITMQ_SP_USER=guest
+RABBITMQ_SP_PASSWORD=guest
 ```
 
 🔨 Compilación de order-service (Spring Boot)
