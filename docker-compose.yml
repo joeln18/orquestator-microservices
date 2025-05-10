@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5432:${DB_PORT}"
     volumes:
       - pgdata-order:/var/lib/postgresql/data
     networks:
@@ -23,7 +23,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5433:5432"
+      - "5433:${DB_PORT}"
     volumes:
       - pgdata-inventory:/var/lib/postgresql/data
     networks:
@@ -44,7 +44,7 @@ services:
   order-service:
     build: ./order-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/restaurante
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:${DB_PORT}/${DB_DATABASE_ORDER}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       RABBITMQ_SP_HOST: ${RABBITMQ_HOST}
@@ -65,7 +65,7 @@ services:
       - ./inventory-service/.env
     environment:
       DB_HOST: postgres-inventory
-      DB_PORT: 5432
+      DB_PORT: ${DB_PORT}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_DATABASE_INVENTORY}
@@ -95,8 +95,8 @@ services:
     entrypoint: >
       bash -c "
         chmod +x /scripts/wait-for-it.sh &&
-        /scripts/wait-for-it.sh postgres-order:5432 --timeout=60 &&
-        /scripts/wait-for-it.sh postgres-inventory:5432 --timeout=60 &&
+        /scripts/wait-for-it.sh postgres-order:${DB_PORT} --timeout=60 &&
+        /scripts/wait-for-it.sh postgres-inventory:${DB_PORT} --timeout=60 &&
         echo 'Bases de datos disponibles, esperando microservicios...' &&
         sleep 20 &&
         echo 'Ejecutando seed en restaurante...' &&
@@ -106,6 +106,41 @@ services:
         psql -h postgres-inventory -U ${DB_USER} -d ${DB_DATABASE_INVENTORY} -f /docker-entrypoint-initdb.d/fill_tables_inventory.sql &&
         echo 'Seed en inventario completado.'
       "
+    networks:
+      - backend
+  liquibase-order:
+    image: liquibase/liquibase
+    container_name: liquibase-order
+    depends_on:
+      - postgres-order
+    volumes:
+      - ./liquibase/order:/liquibase/changelog
+    command:
+      [
+        "--url=jdbc:postgresql://postgres-order:${DB_PORT}/${DB_DATABASE_ORDER}",
+        "--changeLogFile=changelog-order.xml",
+        "--username=${DB_USER}",
+        "--password=${DB_PASSWORD}",
+        "update"
+      ]
+    networks:
+      - backend
+
+  liquibase-inventory:
+    image: liquibase/liquibase
+    container_name: liquibase-inventory
+    depends_on:
+      - postgres-inventory
+    volumes:
+      - ./liquibase/inventory:/liquibase/changelog
+    command:
+      [
+        "--url=jdbc:postgresql://postgres-inventory:${DB_PORT}/${DB_DATABASE_INVENTORY}",
+        "--changeLogFile=changelog-inventory.xml",
+        "--username=${DB_USER}",
+        "--password=${DB_PASSWORD}",
+        "update"
+      ]
     networks:
       - backend
 
