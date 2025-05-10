@@ -88,6 +88,14 @@ target/pedidos-service-0.0.1-SNAPSHOT.jar
 
 Este archivo es el que será usado en el contenedor Docker.
 
+⚙️ ## Permisos de lectura sobre scripts
+
+```
+chmod +x init-scripts/fill_tables_inventory.sql
+chmod +x init-scripts/fill_tables_order.sql
+chmod +x init-scripts/wait-for-it.sh
+```
+
 🐳 Levantar los contenedores
 
 En la raíz del orquestador, ejecuta:
@@ -127,7 +135,39 @@ docker-compose down
 	•	inventory-service requiere de variables de entorno del sistema para postgres
 
 
+✅ Ejemplo de JSON para realizar un pedido con disponibilidad en postman
+	POST localhost:8080/api/pedidos
 
+```
+{
+    "idPedido": 2,
+    "cliente": {
+        "idCliente": 7233
+    },
+    "itemPedidos": [
+        {
+            "idReceta": 1,
+            "cantidad": 1,
+            "valor": 2000.0,
+            "totalItem": 2000.0,
+            "estado": true
+        }
+    ],
+    "direccionEntrega": {
+        "departamento": "Antioquia",
+        "municipio": "Medellin",
+        "barrio": "Barrio Prueba",
+        "direccion": "CR 40 50 52"
+    },
+    "totalPedido": {
+        "subTotal": 10000.0,
+        "porcentajeIVA": 19,
+        "iva": 3000.0,
+        "totalPedido": 13000.0
+    },
+    "estado": true
+}
+```
 
 
 

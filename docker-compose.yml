@@ -1,17 +1,31 @@
 version: '3.9'
 
 services:
-  postgres:
+  postgres-order:
     image: postgres:14.17
-    container_name: postgres-db-microservices
+    container_name: postgres-order-db
     environment:
-      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_DB: ${DB_DATABASE_ORDER}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata-order:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  postgres-inventory:
+    image: postgres:14.17
+    container_name: postgres-inventory-db
+    environment:
+      POSTGRES_DB: ${DB_DATABASE_INVENTORY}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata-inventory:/var/lib/postgresql/data
     networks:
       - backend
 
@@ -19,18 +33,18 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq-microservices
     ports:
-      - "5672:5672"    # Puerto para aplicaciones (conexión amqp)
-      - "15672:15672"  # Puerto para la consola de administración
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     networks:
-      - backend 
+      - backend
 
   order-service:
     build: ./order-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/restaurante
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/restaurante
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       RABBITMQ_SP_HOST: ${RABBITMQ_HOST}
@@ -40,7 +54,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
+      - postgres-order
       - rabbitmq
     networks:
       - backend
@@ -50,22 +64,54 @@ services:
     env_file:
       - ./inventory-service/.env
     environment:
-      DB_HOST: postgres
-      DB_PORT: ${DB_PORT}
+      DB_HOST: postgres-inventory
+      DB_PORT: 5432
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_DATABASE}
-      RABBITMQ_HOST: ${RABBITMQ_HOST} 
+      DB_NAME: ${DB_DATABASE_INVENTORY}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
+      - postgres-inventory
       - rabbitmq
     networks:
       - backend
 
+  db-seeder:
+    image: postgres:14.17
+    depends_on:
+      - postgres-order
+      - postgres-inventory
+      - order-service
+      - inventory-service
+    volumes:
+      - ./init-scripts/fill_tables_order.sql:/docker-entrypoint-initdb.d/fill_tables_order.sql
+      - ./init-scripts/fill_tables_inventory.sql:/docker-entrypoint-initdb.d/fill_tables_inventory.sql
+      - ./init-scripts/wait-for-it.sh:/scripts/wait-for-it.sh
+    environment:
+      PGUSER: ${DB_USER}
+      PGPASSWORD: ${DB_PASSWORD}
+    entrypoint: >
+      bash -c "
+        chmod +x /scripts/wait-for-it.sh &&
+        /scripts/wait-for-it.sh postgres-order:5432 --timeout=60 &&
+        /scripts/wait-for-it.sh postgres-inventory:5432 --timeout=60 &&
+        echo 'Bases de datos disponibles, esperando microservicios...' &&
+        sleep 20 &&
+        echo 'Ejecutando seed en restaurante...' &&
+        psql -h postgres-order -U ${DB_USER} -d ${DB_DATABASE_ORDER} -f /docker-entrypoint-initdb.d/fill_tables_order.sql &&
+        echo 'Seed en restaurante completado.' &&
+        echo 'Ejecutando seed en inventario...' &&
+        psql -h postgres-inventory -U ${DB_USER} -d ${DB_DATABASE_INVENTORY} -f /docker-entrypoint-initdb.d/fill_tables_inventory.sql &&
+        echo 'Seed en inventario completado.'
+      "
+    networks:
+      - backend
+
 volumes:
-  pgdata:
+  pgdata-order:
+  pgdata-inventory:
 
 networks:
   backend:
