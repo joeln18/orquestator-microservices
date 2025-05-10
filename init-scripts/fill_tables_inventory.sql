@@ -1,24 +1,46 @@
-INSERT INTO unidad_medida (nombre) VALUES
+-- Insertar unidades de medida solo si no existen
+INSERT INTO unidad_medida (nombre)
+SELECT nombre FROM (VALUES
     ('Gramos'),
     ('Litros'),
-    ('Unidades');
+    ('Unidades')
+) AS v(nombre)
+WHERE NOT EXISTS (
+    SELECT 1 FROM unidad_medida u WHERE u.nombre = v.nombre
+);
 
--- Insertar ingredientes
-INSERT INTO ingrediente (nombre, cantidad, unidad_medida_id) VALUES
-    ('Harina', 1000, 1),  -- 500 gramos de harina
-    ('Leche', 10, 2),     -- 1 litro de leche
-    ('Huevo', 30, 3);     -- 3 unidades de huevo
+-- Insertar ingredientes solo si no existen
+INSERT INTO ingrediente (nombre, cantidad, unidad_medida_id)
+SELECT nombre, cantidad, unidad_medida_id FROM (VALUES
+    ('Harina', 1000, 1),
+    ('Leche', 10, 2),
+    ('Huevo', 30, 3)
+) AS v(nombre, cantidad, unidad_medida_id)
+WHERE NOT EXISTS (
+    SELECT 1 FROM ingrediente i WHERE i.nombre = v.nombre
+);
 
--- Insertar recetas
-INSERT INTO receta (nombre) VALUES
+-- Insertar recetas solo si no existen
+INSERT INTO receta (nombre)
+SELECT nombre FROM (VALUES
     ('Panqueques'),
-    ('Bizcocho');
+    ('Bizcocho')
+) AS v(nombre)
+WHERE NOT EXISTS (
+    SELECT 1 FROM receta r WHERE r.nombre = v.nombre
+);
 
--- Insertar ingredientes en recetas
-INSERT INTO ingrediente_receta (receta_id, ingrediente_id, cantidad, unidad_medida_id) VALUES
-    (1, 1, 250, 1), -- 250g de harina para Panqueques
-    (1, 2, 0.5, 2), -- 0.5 litros de leche para Panqueques
-    (1, 3, 2, 3),   -- 2 huevos para Panqueques
-    (2, 1, 300, 1), -- 300g de harina para Bizcocho
-    (2, 2, 11, 2), -- 0.3 litros de leche para Bizcocho
-    (2, 3, 3, 3);   -- 3 huevos para Bizcocho
+-- Insertar ingredientes en recetas solo si no existen
+INSERT INTO ingrediente_receta (receta_id, ingrediente_id, cantidad, unidad_medida_id)
+SELECT receta_id, ingrediente_id, cantidad, unidad_medida_id FROM (VALUES
+    (1, 1, 250, 1), 
+    (1, 2, 0.5, 2), 
+    (1, 3, 2, 3),   
+    (2, 1, 300, 1), 
+    (2, 2, 11, 2), 
+    (2, 3, 3, 3)
+) AS v(receta_id, ingrediente_id, cantidad, unidad_medida_id)
+WHERE NOT EXISTS (
+    SELECT 1 FROM ingrediente_receta ir
+    WHERE ir.receta_id = v.receta_id AND ir.ingrediente_id = v.ingrediente_id
+);
