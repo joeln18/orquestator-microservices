@@ -52,7 +52,7 @@ services:
       RABBITMQ_SP_USER: ${RABBITMQ_USER}
       RABBITMQ_SP_PASSWORD: ${RABBITMQ_PASSWORD}
     ports:
-      - "8080:8080"
+      - "8080:${PORT_JAVA}"
     depends_on:
       - postgres-order
       - rabbitmq
@@ -71,7 +71,7 @@ services:
       DB_NAME: ${DB_DATABASE_INVENTORY}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
     ports:
-      - "3000:3000"
+      - "3000:${PORT_NODE}"
     depends_on:
       - postgres-inventory
       - rabbitmq
