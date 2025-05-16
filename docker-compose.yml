@@ -31,6 +31,8 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     container_name: rabbitmq-microservices
     ports:
       - "5672:5672"
@@ -147,6 +149,7 @@ services:
 volumes:
   pgdata-order:
   pgdata-inventory:
+  rabbitmq_data:
 
 networks:
   backend:
