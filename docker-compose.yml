@@ -72,14 +72,22 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_DATABASE_INVENTORY}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
+      URL_SOCKET: http://socket-service:${SOCKET_PORT}
     ports:
       - "3000:${PORT_NODE}"
     depends_on:
       - postgres-inventory
       - rabbitmq
+      - socket-service
     networks:
       - backend
-
+  socket-service:
+    build: ./socket-server
+    container_name: socket-service
+    ports:
+      - "3001:${SOCKET_PORT}"
+    networks:
+      - backend
   db-seeder:
     image: postgres:14.17
     depends_on:
